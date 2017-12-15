@@ -49238,8 +49238,22 @@ module.exports = {
 var React = require('react');
 
 var About = React.createClass({displayName: "About",
-
-        render: function() {
+    statics: {
+        willTransitionTo: function(transition, params, query, callback) {
+                if(!confirm('Are you sure you want to read about page !?')) {
+                    transition.abort();
+                } else {
+                    callback();
+                }
+        },
+        
+        willTransitionFrom: function(transition, component) {
+                if(!confirm('Are you sure you want to leave !?')) {
+                    transition.abort();
+                }
+        }
+    },
+    render: function() {
 
             return (
                     React.createElement("div", null, 
@@ -49258,7 +49272,7 @@ var About = React.createClass({displayName: "About",
                         )
                     )
             );
-        }
+    }
 });
 
 module.exports = About;
