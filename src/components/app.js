@@ -1,3 +1,5 @@
+/*eslint-disable strict*/ // disable strict mode for react
+
 var React = require('react');
 var Header = require('./common/header');
 var RouteHandler = require('react-router').RouteHandler;
