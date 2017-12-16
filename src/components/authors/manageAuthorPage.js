@@ -4,6 +4,7 @@ var React = require('react');
 var Router = require('react-router');
 var AuthorForm = require('./authorForm');
 var authorApi = require('../../api/authorApi');
+var toastr = require('toastr');
 
 var ManageAuthorPage = React.createClass({
         mixins: [
@@ -26,6 +27,7 @@ var ManageAuthorPage = React.createClass({
     saveAuthor: function(event) {
         event.preventDefault(); // we don't want to browser behavior to happen here , we're going to capture that and use javascipt to work with it
         authorApi.saveAuthor(this.state.author);
+        toastr.success('Author saved.');
         this.transitionTo('authors');
     },
 
