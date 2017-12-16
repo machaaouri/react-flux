@@ -49691,7 +49691,8 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
         ],
     getInitialState: function() {
         return {
-            author: {id: '', firstName: '', lastName: ''}
+            author: {id: '', firstName: '', lastName: ''},
+            errors: {}
         };
     },
 
@@ -49703,8 +49704,30 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
         return this.setState({author: this.state.author});
     },
 
+    authorFormIsValid: function(){
+        var formIsValid = true;
+        this.state.errors = {}; //clear any previous errors
+        if(this.state.author.firstName.length < 3)
+        {
+            this.state.errors.firstName = 'first name must be at least 3 characters';
+            formIsValid = false;
+        }
+        if(this.state.author.lastName.length < 3)
+        {
+            this.state.errors.lastName = 'last name must be at least 3 characters';
+            formIsValid = false;
+        }
+        this.setState({errors: this.state.errors});
+        return formIsValid;
+    },
+
     saveAuthor: function(event) {
         event.preventDefault(); // we don't want to browser behavior to happen here , we're going to capture that and use javascipt to work with it
+        
+        if(!this.authorFormIsValid())
+        {
+            return;
+        }
         authorApi.saveAuthor(this.state.author);
         toastr.success('Author saved.');
         this.transitionTo('authors');
@@ -49715,7 +49738,8 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
                 React.createElement(AuthorForm, {
                     author: this.state.author, 
                     onChange: this.setAuthorState, // whenever something changes within the author form, call setAuthorState function
-                    onSave: this.saveAuthor}) 
+                    onSave: this.saveAuthor, 
+                    errors: this.state.errors}) 
          );
     }
 });
@@ -49738,13 +49762,15 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 					name: "firstName", 
 					label: "First Name", 
 					value: this.props.author.firstName, 
-					onChange: this.props.onChange}), 
+					onChange: this.props.onChange, 
+					error: this.props.errors.firstName}), 
 
 				React.createElement(Input, {
 					name: "lastName", 
 					label: "Last Name", 
 					value: this.props.author.lastName, 
-					onChange: this.props.onChange}), 
+					onChange: this.props.onChange, 
+					error: this.props.errors.lastName}), 
 
 				React.createElement("input", {type: "submit", value: "Save", className: "btn btn-default", onClick: this.props.onSave})
 			)
