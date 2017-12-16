@@ -11,6 +11,14 @@ var AuthorForm = React.createClass({
 		errors: React.PropTypes.object
 	},
 
+	statics: {
+		willTransitionFrom: function(transition, component) {
+			if (component.state.dirty && !confirm('Leave without saving?')) {
+				transition.abort();
+			}
+		}
+	},
+
     render: function() {
          return (
                <form>
