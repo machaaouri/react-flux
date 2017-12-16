@@ -23,9 +23,17 @@ var ManageAuthorPage = React.createClass({
         return {
             author: {id: '', firstName: '', lastName: ''},
             errors: {},
-            dirty :false
+            dirty: false
         };
     },
+
+    componentWillMount: function() {
+		var authorId = this.props.params.id; //from the path '/author:id'
+
+		if (authorId) {
+			this.setState({author: authorApi.getAuthorById(authorId) });
+		}
+	},
 
     setAuthorState: function(event){ // this function will be called for every single key press that i make
         this.setState({dirty: true});
