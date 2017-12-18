@@ -1,7 +1,9 @@
 "use strict";
 
-var KeyMirror = require('react/lib/KeyMirror');
+var keyMirror = require('react/lib/keyMirror');
 
-module.exports = KeyMirror({
-    CREATE_AUTHOR: null
+module.exports = keyMirror({
+    INITIALIZE: null,
+    CREATE_AUTHOR: null,
+    UPDATE_AUTHOR: null
 });
