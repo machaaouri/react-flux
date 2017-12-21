@@ -50289,7 +50289,7 @@ var AuthorActions = {
 
 module.exports = AuthorActions;
 
-},{"../api/authorApi":206,"../constants/actionTypes":222,"../dispatcher/appDispatcher":223}],205:[function(require,module,exports){
+},{"../api/authorApi":206,"../constants/actionTypes":225,"../dispatcher/appDispatcher":226}],205:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -50309,7 +50309,7 @@ var InitializeActions = {
 
 module.exports = InitializeActions;
 
-},{"../api/authorApi":206,"../constants/actionTypes":222,"../dispatcher/appDispatcher":223}],206:[function(require,module,exports){
+},{"../api/authorApi":206,"../constants/actionTypes":225,"../dispatcher/appDispatcher":226}],206:[function(require,module,exports){
 "use strict";
 
 //This file is mocking a web API by hitting hard coded data.
@@ -50645,7 +50645,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 
 module.exports = ManageAuthorPage;
 
-},{"../../actions/authorActions":204,"../../stores/authorStore":226,"./authorForm":213,"react":202,"react-router":33,"toastr":203}],213:[function(require,module,exports){
+},{"../../actions/authorActions":204,"../../stores/authorStore":229,"./authorForm":213,"react":202,"react-router":33,"toastr":203}],213:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50694,7 +50694,7 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 
 module.exports = AuthorForm;
 
-},{"../common/textInput":217,"react":202}],214:[function(require,module,exports){
+},{"../common/textInput":218,"react":202}],214:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50787,7 +50787,7 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 
 module.exports = AuthorPage;
 
-},{"../../actions/authorActions":204,"../../stores/authorStore":226,"./authorList":214,"react":202,"react-router":33}],216:[function(require,module,exports){
+},{"../../actions/authorActions":204,"../../stores/authorStore":229,"./authorList":214,"react":202,"react-router":33}],216:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50817,6 +50817,59 @@ var Header = React.createClass({displayName: "Header",
 module.exports = Header;
 
 },{"react":202,"react-router":33}],217:[function(require,module,exports){
+"use strict";
+
+var React = require('react');
+
+var SelectInput = React.createClass({displayName: "SelectInput",
+  /*propTypes: { // whe creating a reusable component , it's goof to specify the propTypes so we can get warnings if we don't pass the proper data down
+    name: React.PropTypes.string.isRequired,
+    label: React.PropTypes.string.isRequired,
+    onChange: React.PropTypes.func.isRequired,
+    placeholder: React.PropTypes.string,
+    value: React.PropTypes.string,
+    error: React.PropTypes.string
+  },*/
+
+  propTypes: {
+    authors: React.PropTypes.array.isRequired
+  },
+
+  getInitialState: function(){
+    return {
+       value: null
+    };
+  },
+
+  render: function () {
+    var wrapperClass = 'form-group';
+    if (this.props.error && this.props.error.length > 0) {
+      wrapperClass += " " + 'has-error';
+    }
+
+    var createOptions = function(author){
+        return (
+                React.createElement("option", {key: author.id, value: author.id}, author.firstName, " ", author.lastName)
+        );
+    };
+    
+    return (
+     React.createElement("div", {className: wrapperClass}, 
+        React.createElement("label", {htmlFor: this.props.name}, this.props.label), 
+        React.createElement("div", {className: "field"}, 
+            React.createElement("select", {name: this.props.name, value: this.state.value, onChange: this.props.onChange}, 
+                React.createElement("option", {value: ""}), 
+                this.props.authors.map(createOptions, this)
+            )
+        )
+      )
+    );
+  }
+});
+
+module.exports = SelectInput;
+
+},{"react":202}],218:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50857,10 +50910,195 @@ var Input = React.createClass({displayName: "Input",
 
 module.exports = Input;
 
-},{"react":202}],218:[function(require,module,exports){
+},{"react":202}],219:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
+var Router = require('react-router');
+var CourseForm = require('./courseForm');
+var CourseApi = require('../../api/courseApi');
+var AuthorStore = require('../../stores/authorStore');
+var toastr = require('toastr');
+
+var ManageCoursePage = React.createClass({displayName: "ManageCoursePage",
+
+    mixins: [
+        Router.Navigation
+    ],
+
+    getInitialState: function()
+    {
+        return {
+            authors: AuthorStore.getAllAuthors(),
+            course: {
+                id: '',
+                title: '',
+                watchHref: '',
+                author: {  
+                    id: '',
+                    name: ''
+                },
+                length: '',
+                category: ''
+            },
+            errors: {},
+            dirty: false
+        };
+    },
+
+    componentWillMount: function() {
+		var courseId = this.props.params.id; //from the path '/course:id'
+		if (courseId) {
+			this.setState({course: CourseApi.getCoursesById(courseId) });
+		}
+	},
+
+    setCourseState: function(event){ // this function will be called for every single key press that i make
+        this.setState({dirty: true});
+        var field = event.target.name;
+        var value = event.target.value;
+        if(field === "author")
+        {
+            var author = AuthorStore.getAuthorById(event.target.value);
+            this.state.course[field].id = event.target.value;
+            this.state.course[field].name = author.firstName + ' ' + author.lastName;
+
+        } else {
+
+            this.state.course[field] = value;
+        }
+        return this.setState({course: this.state.course});
+    },
+
+    createCourse: function(course){
+
+        CourseApi.saveCourse(course);
+    },
+
+
+    updateAuthor: function(course){
+
+        CourseApi.saveCourse(course);
+    },
+    
+
+    courseFormIsValid: function(){
+        var formIsValid = true;
+        this.state.errors = {}; //clear any previous errors
+        if(this.state.course.title.length < 4)
+        {
+            this.state.errors.title = 'Title must be at least 4 characters';
+            formIsValid = false;
+        }
+        if(this.state.course.category.length < 4)
+        {
+            this.state.errors.category = 'Category must be at least 4 characters';
+            formIsValid = false;
+        }
+        
+        this.setState({errors: this.state.errors});
+        return formIsValid;
+    },
+
+    saveCourse: function(event) {
+        event.preventDefault(); // we don't want to browser behavior to happen here , we're going to capture that and use javascipt to work with it
+        
+        if(!this.courseFormIsValid())
+        {
+            return;
+        }
+        if(this.state.course.id) {
+           this.updateAuthor(this.state.course);
+        } else {
+            this.createCourse(this.state.course);
+        }
+        
+        this.setState({dirty: false});
+        toastr.success('Author saved.');
+        this.transitionTo('courses');
+    },
+
+    render: function(){
+
+        return (
+
+            React.createElement("div", null, 
+                React.createElement(CourseForm, {course: this.state.course, 
+                            authors: this.state.authors, 
+                            onSave: this.saveCourse, 
+                            onChange: this.setCourseState, 
+                            errors: this.state.errors})
+            )
+        );
+    }
+});
+
+module.exports = ManageCoursePage;
+
+},{"../../api/courseApi":208,"../../stores/authorStore":229,"./courseForm":220,"react":202,"react-router":33,"toastr":203}],220:[function(require,module,exports){
+"use strict";
+
+var React = require('react');
+var Input = require('../common/textInput');
+var SelectInput = require('../common/selectInput');
+
+var CourseForm = React.createClass({displayName: "CourseForm",
+    propTypes: {
+        course:	React.PropTypes.object.isRequired,
+		onSave:	React.PropTypes.func.isRequired,
+		onChange: React.PropTypes.func.isRequired,
+		errors: React.PropTypes.object
+	},
+    render: function(){
+
+        return (
+            React.createElement("form", null, 
+				React.createElement("h1", null, "Manage Course"), 
+				React.createElement(Input, {
+					name: "title", 
+					label: "Title", 
+                    value: this.props.course.title, 
+                    onChange: this.props.onChange, 
+                    error: this.props.errors.title}), 
+
+				React.createElement(SelectInput, {
+					name: "author", 
+					label: "Author", 
+                    value: this.props.course.author, 
+                    authors: this.props.authors, 
+                    onChange: this.props.onChange}), 
+                
+                React.createElement(Input, {
+					name: "category", 
+					label: "Category", 
+                    value: this.props.course.category, 
+                    onChange: this.props.onChange, 
+                    error: this.props.errors.category}), 
+
+                React.createElement(Input, {
+					name: "length", 
+					label: "Length", 
+                    value: this.props.course.length, 
+                    onChange: this.props.onChange, 
+                    error: this.props.errors.length}), 
+                
+
+				React.createElement("input", {type: "submit", value: "Save", className: "btn btn-default", onClick: this.props.onSave})
+			)
+
+        );
+    }
+
+});
+
+module.exports = CourseForm;
+
+},{"../common/selectInput":217,"../common/textInput":218,"react":202}],221:[function(require,module,exports){
+"use strict";
+
+var React = require('react');
+var Router = require('react-router');
+var Link = Router.Link;
 var CourseApi = require('../../api/courseApi');
 
 var CourseList = React.createClass({displayName: "CourseList",
@@ -50878,8 +51116,8 @@ var CourseList = React.createClass({displayName: "CourseList",
                 React.createElement("tr", {key: course.id}, 
                     React.createElement("td", null, React.createElement("a", {href: "#"}, "Watch")), 
                     React.createElement("td", null, React.createElement("a", {href: "#"}, "Delete")), 
-                    React.createElement("td", null, React.createElement("a", null, course.title)), 
-                    React.createElement("td", null, course.author), 
+                    React.createElement("td", null, React.createElement(Link, {to: "manageCourse", params: {id: course.id}}, course.title)), 
+                    React.createElement("td", null, course.author.name), 
                     React.createElement("td", null, course.category), 
                     React.createElement("td", null, course.length)
                 )
@@ -50908,10 +51146,12 @@ var CourseList = React.createClass({displayName: "CourseList",
 
 module.exports = CourseList;
 
-},{"../../api/courseApi":208,"react":202}],219:[function(require,module,exports){
+},{"../../api/courseApi":208,"react":202,"react-router":33}],222:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
+var Router = require('react-router');
+var Link = require('react-router').Link;
 var CourseList = require('./courseList');
 
 var CoursePage = React.createClass({displayName: "CoursePage",
@@ -50921,6 +51161,7 @@ var CoursePage = React.createClass({displayName: "CoursePage",
         return (
                 React.createElement("div", null, 
                     React.createElement("h1", null, "Courses"), 
+                    React.createElement(Link, {to: "addCourse", className: "btn btn-default"}, "Add Course"), 
                     React.createElement(CourseList, null)
                 )
         );
@@ -50929,7 +51170,7 @@ var CoursePage = React.createClass({displayName: "CoursePage",
 
 
 module.exports = CoursePage;
-},{"./courseList":218,"react":202}],220:[function(require,module,exports){
+},{"./courseList":221,"react":202,"react-router":33}],223:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50950,7 +51191,7 @@ var Home = React.createClass({displayName: "Home",
 
 module.exports = Home;
 
-},{"react":202,"react-router":33}],221:[function(require,module,exports){
+},{"react":202,"react-router":33}],224:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -50970,7 +51211,7 @@ var NotFoundPage = React.createClass({displayName: "NotFoundPage",
 
 module.exports = NotFoundPage;
 
-},{"react":202,"react-router":33}],222:[function(require,module,exports){
+},{"react":202,"react-router":33}],225:[function(require,module,exports){
 "use strict";
 
 var keyMirror = require('react/lib/keyMirror');
@@ -50981,7 +51222,7 @@ module.exports = keyMirror({
     UPDATE_AUTHOR: null,
     DELETE_AUTHOR: null
 });
-},{"react/lib/keyMirror":187}],223:[function(require,module,exports){
+},{"react/lib/keyMirror":187}],226:[function(require,module,exports){
 /*
  * Copyright (c) 2015, Facebook, Inc.
  * All rights reserved.
@@ -50999,7 +51240,7 @@ var Dispatcher = require('flux').Dispatcher;
 
 module.exports = new Dispatcher();
 
-},{"flux":2}],224:[function(require,module,exports){
+},{"flux":2}],227:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -51014,7 +51255,7 @@ Router.run(routes, function(Handler){
     React.render(React.createElement(Handler, null), document.getElementById('app'));
 });
 
-},{"./actions/initializeActions":205,"./routes":225,"react":202,"react-router":33}],225:[function(require,module,exports){
+},{"./actions/initializeActions":205,"./routes":228,"react":202,"react-router":33}],228:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -51033,6 +51274,8 @@ var routes = (
     React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/ManageAuthorPage')}), 
 
     React.createElement(Route, {name: "courses", handler: require('./components/courses/coursePage')}), 
+    React.createElement(Route, {name: "addCourse", path: "course", handler: require('./components/courses/ManagecoursePage')}), 
+    React.createElement(Route, {name: "manageCourse", path: "course/:id", handler: require('./components/courses/ManagecoursePage')}), 
 
     React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}), 
     React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}), 
@@ -51043,7 +51286,7 @@ var routes = (
 
 module.exports = routes;
 
-},{"./components/about/aboutPage":210,"./components/app":211,"./components/authors/ManageAuthorPage":212,"./components/authors/authorPage":215,"./components/courses/coursePage":219,"./components/homePage":220,"./components/notFoundPage":221,"react":202,"react-router":33}],226:[function(require,module,exports){
+},{"./components/about/aboutPage":210,"./components/app":211,"./components/authors/ManageAuthorPage":212,"./components/authors/authorPage":215,"./components/courses/ManagecoursePage":219,"./components/courses/coursePage":222,"./components/homePage":223,"./components/notFoundPage":224,"react":202,"react-router":33}],229:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -51105,4 +51348,4 @@ Dispatcher.register(function(action){
 });
 
 module.exports = AuthorStore;
-},{"../constants/actionTypes":222,"../dispatcher/appDispatcher":223,"events":1,"lodash":6,"object-assign":7}]},{},[224]);
+},{"../constants/actionTypes":225,"../dispatcher/appDispatcher":226,"events":1,"lodash":6,"object-assign":7}]},{},[227]);

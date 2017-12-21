@@ -1,6 +1,8 @@
 "use strict";
 
 var React = require('react');
+var Router = require('react-router');
+var Link = Router.Link;
 var CourseApi = require('../../api/courseApi');
 
 var CourseList = React.createClass({
@@ -18,8 +20,8 @@ var CourseList = React.createClass({
                 <tr key={course.id}>
                     <td><a href="#">Watch</a></td>
                     <td><a href="#">Delete</a></td>
-                    <td><a>{course.title}</a></td>
-                    <td>{course.author}</td>
+                    <td><Link to="manageCourse" params={{id: course.id}}>{course.title}</Link></td>
+                    <td>{course.author.name}</td>
                     <td>{course.category}</td>
                     <td>{course.length}</td>
                 </tr>
